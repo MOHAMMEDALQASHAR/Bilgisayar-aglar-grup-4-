@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="tr" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ağ Yolu Optimizasyonu - Network Path Optimization</title>
+    <meta name="description"
+        content="Genetik Algoritmalar, Karınca Kolonisi Optimizasyonu ve Yapay Zeka kullanarak ağlarda gelişmiş yol optimizasyon sistemi">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <div class="header-content">
+            <div>
+                <h1>🌐 Ağ Yolu Optimizasyonu</h1>
+                <p class="header-subtitle">Multi-Objective Network Path Optimization using AI Algorithms</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Network Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="stat-nodes">0</div>
+                <div class="stat-label">Düğüm Sayısı</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-edges">0</div>
+                <div class="stat-label">Bağlantı Sayısı</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-density">0%</div>
+                <div class="stat-label">Ağ Yoğunluğu</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-time">-</div>
+                <div class="stat-label">İşlem Süresi</div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Control Panel -->
+            <div class="controls-panel">
+                <!-- Network Generation Card -->
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <div class="card-icon">🔧</div>
+                        <h2 class="card-title">Ağ Oluşturma</h2>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="num-nodes">Düğüm Sayısı (Nodes)</label>
+                        <input type="number" id="num-nodes" value="250" min="10" max="500">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="connection-prob">Bağlantı Olasılığı (p)</label>
+                        <input type="range" id="connection-prob" min="0.1" max="0.9" step="0.05" value="0.4">
+                        <span class="range-value" id="prob-value">0.4</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="random-seed">Random Seed (İsteğe Bağlı)</label>
+                        <input type="number" id="random-seed" placeholder="Rastgelelik için boş bırakın">
+                    </div>
+
+                    <button class="btn btn-primary" id="btn-generate">
+                        ⚡ Ağ Oluştur
+                    </button>
+                </div>
+
+                <!-- Path Optimization Card -->
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <div class="card-icon">🎯</div>
+                        <h2 class="card-title">Yol Optimizasyonu</h2>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="source-node">Kaynak Düğüm (Source)</label>
+                        <input type="number" id="source-node" value="0" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dest-node">Hedef Düğüm (Destination)</label>
+                        <input type="number" id="dest-node" value="249" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="algorithm">Algoritma</label>
+                        <select id="algorithm">
+                            <option value="GA">Genetic Algorithm (GA)</option>
+                            <option value="ACO">Ant Colony Optimization (ACO)</option>
+                            <option value="PSO">Particle Swarm Optimization (PSO)</option>
+                            <option value="SA">Simulated Annealing (SA)</option>
+                        </select>
+                    </div>
+
+                    <hr style="border: none; border-top: 1px solid var(--card-border); margin: 1.5rem 0;">
+
+                    <h3 style="margin-bottom: 1rem; color: var(--text-secondary); font-size: 1rem;">Ağırlıklar (Weights)
+                    </h3>
+
+                    <div class="form-group">
+                        <label for="weight-delay">Gecikme Ağırlığı (Delay)</label>
+                        <input type="range" id="weight-delay" min="0" max="1" step="0.01" value="0.33">
+                        <span class="range-value" id="delay-value">0.33</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="weight-reliability">Güvenilirlik Ağırlığı (Reliability)</label>
+                        <input type="range" id="weight-reliability" min="0" max="1" step="0.01" value="0.33">
+                        <span class="range-value" id="reliability-value">0.33</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="weight-resource">Kaynak Tüketimi Ağırlığı (Resource)</label>
+                        <input type="range" id="weight-resource" min="0" max="1" step="0.01" value="0.34">
+                        <span class="range-value" id="resource-value">0.34</span>
+                    </div>
+
+                    <div
+                        style="text-align: center; margin: 1rem 0; padding: 0.8rem; background: rgba(0, 242, 254, 0.1); border-radius: 8px;">
+                        <span style="color: var(--accent-cyan); font-weight: 600;">Toplam: <span
+                                id="weights-sum">1.00</span></span>
+                    </div>
+
+                    <button class="btn btn-success" id="btn-optimize">
+                        🚀 Yolu Optimize Et
+                    </button>
+
+                    <button class="btn btn-secondary" id="btn-compare">
+                        📊 Algoritmaları Karşılaştır
+                    </button>
+                </div>
+
+                <!-- Testing Card -->
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <div class="card-icon">🧪</div>
+                        <h2 class="card-title">Kapsamlı Testler</h2>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="num-tests">Test Sayısı</label>
+                        <input type="number" id="num-tests" value="20" min="5" max="100">
+                    </div>
+
+                    <button class="btn btn-primary" id="btn-run-tests">
+                        🔬 Testleri Çalıştır
+                    </button>
+                </div>
+            </div>
+
+            <!-- Visualization Panel -->
+            <div class="visualization-panel">
+                <!-- Network Visualization Card -->
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <div class="card-icon">📊</div>
+                        <h2 class="card-title">Ağ Görselleştirme</h2>
+                    </div>
+
+                    <div id="network-canvas"></div>
+
+                    <div class="results-container" id="results-container" style="display: none;">
+                        <h3 style="margin-bottom: 1rem; color: var(--accent-cyan);">Optimizasyon Sonuçları</h3>
+
+                        <div class="metric-row">
+                            <span class="metric-label">Kullanılan Algoritma:</span>
+                            <span class="metric-value" id="result-algorithm">-</span>
+                        </div>
+
+                        <div class="metric-row">
+                            <span class="metric-label">Yol Uzunluğu:</span>
+                            <span class="metric-value" id="result-path-length">-</span>
+                        </div>
+
+                        <div class="metric-row">
+                            <span class="metric-label">Toplam Maliyet:</span>
+                            <span class="metric-value" id="result-cost">-</span>
+                        </div>
+
+                        <div class="metric-row">
+                            <span class="metric-label">Toplam Gecikme:</span>
+                            <span class="metric-value" id="result-delay">-</span>
+                        </div>
+
+                        <div class="metric-row">
+                            <span class="metric-label">Toplam Güvenilirlik:</span>
+                            <span class="metric-value" id="result-reliability">-</span>
+                        </div>
+
+                        <div class="metric-row">
+                            <span class="metric-label">Kaynak Maliyeti:</span>
+                            <span class="metric-value" id="result-resource">-</span>
+                        </div>
+
+                        <div class="metric-row">
+                            <span class="metric-label">İşlem Süresi:</span>
+                            <span class="metric-value" id="result-time">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comparison Results Card -->
+                <div class="card fade-in" id="comparison-card" style="display: none;">
+                    <div class="card-header">
+                        <div class="card-icon">📈</div>
+                        <h2 class="card-title">Algoritma Karşılaştırması</h2>
+                    </div>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Algoritma</th>
+                                <th>Maliyet</th>
+                                <th>Gecikme</th>
+                                <th>Güvenilirlik</th>
+                                <th>Süre (sn)</th>
+                                <th>Yol Uzunluğu</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comparison-results">
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Testing Results Card -->
+                <div class="card fade-in" id="testing-card" style="display: none;">
+                    <div class="card-header">
+                        <div class="card-icon">📉</div>
+                        <h2 class="card-title">İstatistiksel Test Sonuçları</h2>
+                    </div>
+
+                    <div id="testing-results"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span id="toast-message"></span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="//unpkg.com/globe.gl"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+
+</html>
