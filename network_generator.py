@@ -30,6 +30,63 @@ class NetworkGenerator:
         
         self.graph = None
         
+    
+    def load_from_data(self, nodes_df, edges_df):
+        """
+        Build graph from pandas DataFrames
+        
+        Args:
+            nodes_df: DataFrame containing node data
+            edges_df: DataFrame containing edge data
+            
+        Returns:
+            NetworkX graph object
+        """
+        G = nx.Graph()
+        
+        # Add nodes
+        for _, row in nodes_df.iterrows():
+            node_id = int(row['node_id'])
+            G.add_node(node_id)
+            
+            # Map columns to properties
+            G.nodes[node_id]['processing_delay'] = float(row['s_ms']) if 's_ms' in row else 1.0
+            G.nodes[node_id]['reliability'] = float(row['r_node']) if 'r_node' in row else 0.99
+            
+            # Generate random geographical coordinates for visualization
+            G.nodes[node_id]['lat'] = np.random.uniform(-60, 80)
+            G.nodes[node_id]['lng'] = np.random.uniform(-180, 180)
+            
+        # Add edges
+        for _, row in edges_df.iterrows():
+            src = int(row['src'])
+            dst = int(row['dst'])
+            
+            # Ensure nodes exist
+            if not G.has_node(src):
+                G.add_node(src)
+                G.nodes[src]['processing_delay'] = 1.0
+                G.nodes[src]['reliability'] = 0.99
+                G.nodes[src]['lat'] = np.random.uniform(-60, 80)
+                G.nodes[src]['lng'] = np.random.uniform(-180, 180)
+                
+            if not G.has_node(dst):
+                G.add_node(dst)
+                G.nodes[dst]['processing_delay'] = 1.0
+                G.nodes[dst]['reliability'] = 0.99
+                G.nodes[dst]['lat'] = np.random.uniform(-60, 80)
+                G.nodes[dst]['lng'] = np.random.uniform(-180, 180)
+            
+            G.add_edge(src, dst)
+            
+            # Map columns to properties
+            G.edges[src, dst]['bandwidth'] = float(row['capacity_mbps']) if 'capacity_mbps' in row else 100.0
+            G.edges[src, dst]['delay'] = float(row['delay_ms']) if 'delay_ms' in row else 5.0
+            G.edges[src, dst]['reliability'] = float(row['r_link']) if 'r_link' in row else 0.99
+            
+        self.graph = G
+        return G
+
     def generate_connected_network(self) -> nx.Graph:
         """
         Generate a connected Erdős–Rényi network

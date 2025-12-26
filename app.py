@@ -13,6 +13,8 @@ from genetic_algorithm import GeneticAlgorithm
 from ant_colony import AntColonyOptimization
 from particle_swarm import ParticleSwarmOptimization
 from simulated_annealing import SimulatedAnnealing
+from tabusearch import TabuSearch
+from data_loader import load_network_data
 
 app = Flask(__name__)
 CORS(app)
@@ -35,13 +37,21 @@ def generate_network():
     
     try:
         data = request.json
-        num_nodes = data.get('num_nodes', 250)
-        connection_prob = data.get('connection_prob', 0.4)
+        num_nodes = data.get('num_nodes', 100)
+        connection_prob = data.get('connection_prob', 0.1)
         seed = data.get('seed', None)
         
         # Generate network
         network_gen = NetworkGenerator(num_nodes, connection_prob, seed)
-        graph = network_gen.generate_connected_network()
+        
+        try:
+            # Try to load from CSV files first
+            nodes_df, edges_df, _ = load_network_data()
+            print("Loading network from CSV files...")
+            graph = network_gen.load_from_data(nodes_df, edges_df)
+        except Exception as load_err:
+            print(f"Could not load CSV files, falling back to random generation: {load_err}")
+            graph = network_gen.generate_connected_network()
         
         # Prepare network data for visualization
         nodes_data = []
@@ -127,6 +137,8 @@ def optimize_path():
             algo = ParticleSwarmOptimization(graph, source, destination)
         elif algorithm == 'SA':
             algo = SimulatedAnnealing(graph, source, destination)
+        elif algorithm == 'TS':
+            algo = TabuSearch(graph, source, destination)
         else:
             return jsonify({
                 'success': False,
@@ -194,7 +206,8 @@ def compare_algorithms():
             'GA': GeneticAlgorithm,
             'ACO': AntColonyOptimization,
             'PSO': ParticleSwarmOptimization,
-            'SA': SimulatedAnnealing
+            'SA': SimulatedAnnealing,
+            'TS': TabuSearch
         }
         
         for algo_name, AlgoClass in algorithms.items():
@@ -248,7 +261,7 @@ def run_tests():
     
     try:
         data = request.json
-        num_tests = data.get('num_tests', 20)
+        num_tests = data.get('num_tests', 5)  # Reduced default for performance
         
         # Generate random test cases
         import random
@@ -271,14 +284,16 @@ def run_tests():
             'GA': [],
             'ACO': [],
             'PSO': [],
-            'SA': []
+            'SA': [],
+            'TS': []
         }
         
         algorithms = {
             'GA': GeneticAlgorithm,
             'ACO': AntColonyOptimization,
             'PSO': ParticleSwarmOptimization,
-            'SA': SimulatedAnnealing
+            'SA': SimulatedAnnealing,
+            'TS': TabuSearch
         }
         
         weights = {'delay': 0.33, 'reliability': 0.33, 'resource': 0.34}

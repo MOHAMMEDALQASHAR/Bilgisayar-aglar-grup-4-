@@ -12,7 +12,7 @@ class ParticleSwarmOptimization:
     """Particle Swarm Optimization for finding optimal paths in networks"""
     
     def __init__(self, graph: nx.Graph, source: int, destination: int,
-                 num_particles: int = 50, num_iterations: int = 100,
+                 num_particles: int = 15, num_iterations: int = 15,
                  w: float = 0.7, c1: float = 1.5, c2: float = 1.5):
         """
         Initialize Particle Swarm Optimization

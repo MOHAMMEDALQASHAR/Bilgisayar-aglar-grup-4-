@@ -8,9 +8,7 @@
     <meta name="description"
         content="Genetik Algoritmalar, Karınca Kolonisi Optimizasyonu ve Yapay Zeka kullanarak ağlarda gelişmiş yol optimizasyon sistemi">
     <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Offline fonts fallback to system fonts defined in css -->
 </head>
 
 <body>
@@ -57,12 +55,12 @@
 
                     <div class="form-group">
                         <label for="num-nodes">Düğüm Sayısı (Nodes)</label>
-                        <input type="number" id="num-nodes" value="250" min="10" max="500">
+                        <input type="number" id="num-nodes" value="100" min="10" max="300">
                     </div>
 
                     <div class="form-group">
                         <label for="connection-prob">Bağlantı Olasılığı (p)</label>
-                        <input type="range" id="connection-prob" min="0.1" max="0.9" step="0.05" value="0.4">
+                        <input type="range" id="connection-prob" min="0.05" max="0.5" step="0.05" value="0.1">
                         <span class="range-value" id="prob-value">0.4</span>
                     </div>
 
@@ -100,6 +98,7 @@
                             <option value="ACO">Ant Colony Optimization (ACO)</option>
                             <option value="PSO">Particle Swarm Optimization (PSO)</option>
                             <option value="SA">Simulated Annealing (SA)</option>
+                            <option value="TS">Tabu Search (TS)</option>
                         </select>
                     </div>
 
@@ -252,8 +251,8 @@
     </div>
 
     <!-- Scripts -->
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="//unpkg.com/globe.gl"></script>
+    <script src="/static/lib/d3.v7.min.js"></script>
+    <script src="/static/lib/globe.gl.min.js"></script>
     <script src="/static/js/app.js"></script>
 </body>
 

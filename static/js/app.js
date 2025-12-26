@@ -79,33 +79,33 @@ class NetworkOptimizer {
         const container = document.getElementById('network-canvas');
 
         this.globe = Globe()
-            .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
-            .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
-            .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
+            .globeImageUrl('/static/img/globe/earth-night.jpg')
+            .bumpImageUrl('/static/img/globe/earth-topology.png')
+            .backgroundImageUrl('/static/img/globe/night-sky.png')
             .width(container.clientWidth)
             .height(container.clientHeight)
             // Arc configuration
             .arcColor('color')
             .arcDashLength(0.4)
             .arcDashGap(0.2)
-            .arcDashAnimateTime(1500)
+            .arcDashAnimateTime(0) // Disable validation animation for performance or make it very slow
             .arcStroke(0.5)
             // Point configuration
             .pointColor('color')
             .pointAltitude(0.01)
             .pointRadius(0.5)
             .pointsMerge(true)
-            .pointResolution(32) // Smoother points
+            .pointResolution(8) // Lower resolution for better performance
             // Labels configuration
             .labelsData([])
             .labelLat('lat')
             .labelLng('lng')
             .labelText(d => '' + d.id)
-            .labelSize(2.0)
+            .labelSize(1.5)
             .labelDotRadius(0.0)
             .labelColor(() => '#ffcb21')
             .labelAltitude(0.05)
-            .labelResolution(3)
+            .labelResolution(1) // Lowest resolution text
             // Interaction
             .onPointClick((point, event) => {
                 this.toggleNodeSelection(point);
@@ -187,11 +187,29 @@ class NetworkOptimizer {
             size: 0.5
         }));
 
+        // Create a lookup map for nodes for O(1) access
+        const nodeMap = new Map(nodes.map(n => [n.id, n]));
+
+        // Limit displayed edges for performance if there are too many
+        const MAX_DISPLAY_EDGES = 300;
+        let displayEdges = data.edges;
+
+        if (displayEdges.length > MAX_DISPLAY_EDGES) {
+            // Randomly sample edges if too many
+            displayEdges = displayEdges
+                .sort(() => 0.5 - Math.random())
+                .slice(0, MAX_DISPLAY_EDGES);
+        }
+
         // Map edges to use lat/lng from source/target nodes
-        const edges = data.edges.map(edge => {
-            const sourceNode = nodes.find(n => n.id === edge.source);
-            const targetNode = nodes.find(n => n.id === edge.target);
-            return {
+        const edges = displayEdges.reduce((acc, edge) => {
+            const sourceNode = nodeMap.get(edge.source);
+            const targetNode = nodeMap.get(edge.target);
+
+            // Skip invalid edges where nodes might be missing
+            if (!sourceNode || !targetNode) return acc;
+
+            acc.push({
                 startLat: sourceNode.lat,
                 startLng: sourceNode.lng,
                 endLat: targetNode.lat,
@@ -199,8 +217,9 @@ class NetworkOptimizer {
                 color: ['rgba(102, 126, 234, 0.3)', 'rgba(102, 126, 234, 0.3)'],
                 stroke: Math.sqrt(edge.bandwidth) / 100, // Reduced scale for globe
                 originalData: edge
-            };
-        });
+            });
+            return acc;
+        }, []);
 
         this.globe
             .pointsData(nodes)
@@ -325,12 +344,17 @@ class NetworkOptimizer {
         });
 
         // Re-process edges to highlight path
+        // Create lookup for current nodes
+        const nodeMap = new Map(currentNodes.map(n => [n.id, n]));
+
         const currentEdges = this.networkData.edges.map(edge => {
-            const sourceNode = currentNodes.find(n => n.id === edge.source);
-            const targetNode = currentNodes.find(n => n.id === edge.target);
+            const sourceNode = nodeMap.get(edge.source);
+            const targetNode = nodeMap.get(edge.target);
 
             // Check if edge is part of the path
             let isPathEdge = false;
+            // Optimize path check using a Set of strings "src-dst"
+            // But since path is short (usually < 100 nodes), loop is fine here.
             for (let i = 0; i < path.length - 1; i++) {
                 if ((edge.source === path[i] && edge.target === path[i + 1]) ||
                     (edge.source === path[i + 1] && edge.target === path[i])) {
@@ -468,7 +492,8 @@ class NetworkOptimizer {
             return;
         }
 
-        const numTests = parseInt(document.getElementById('num-tests').value);
+        let numTests = parseInt(document.getElementById('num-tests').value);
+        if (numTests > 20) numTests = 20; // Hard limit for performance
 
         const btn = document.getElementById('btn-run-tests');
         btn.disabled = true;

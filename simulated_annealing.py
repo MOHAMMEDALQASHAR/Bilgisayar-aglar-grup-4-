@@ -14,7 +14,7 @@ class SimulatedAnnealing:
     
     def __init__(self, graph: nx.Graph, source: int, destination: int,
                  initial_temp: float = 1000.0, cooling_rate: float = 0.95,
-                 num_iterations: int = 1000, iterations_per_temp: int = 10):
+                 num_iterations: int = 50, iterations_per_temp: int = 5):
         """
         Initialize Simulated Annealing
         

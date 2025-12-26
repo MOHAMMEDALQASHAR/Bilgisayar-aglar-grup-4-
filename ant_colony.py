@@ -12,7 +12,7 @@ class AntColonyOptimization:
     """Ant Colony Optimization for finding optimal paths in networks"""
     
     def __init__(self, graph: nx.Graph, source: int, destination: int,
-                 num_ants: int = 50, num_iterations: int = 100,
+                 num_ants: int = 10, num_iterations: int = 10,
                  alpha: float = 1.0, beta: float = 2.0,
                  evaporation_rate: float = 0.5, Q: float = 100.0):
         """

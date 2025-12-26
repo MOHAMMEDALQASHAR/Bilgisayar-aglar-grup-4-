@@ -12,9 +12,9 @@ class GeneticAlgorithm:
     """Genetic Algorithm for finding optimal paths in networks"""
     
     def __init__(self, graph: nx.Graph, source: int, destination: int,
-                 population_size: int = 100, generations: int = 200,
+                 population_size: int = 30, generations: int = 30,
                  mutation_rate: float = 0.1, crossover_rate: float = 0.8,
-                 elite_size: int = 10):
+                 elite_size: int = 5):
         """
         Initialize Genetic Algorithm
         
