@@ -33,12 +33,7 @@ class NetworkOptimizer {
     }
 
     setupRangeSliders() {
-        // Connection probability slider
-        const probSlider = document.getElementById('connection-prob');
-        const probValue = document.getElementById('prob-value');
-        probSlider.addEventListener('input', (e) => {
-            probValue.textContent = e.target.value;
-        });
+
 
         // Weight sliders
         const delaySlider = document.getElementById('weight-delay');
@@ -79,7 +74,7 @@ class NetworkOptimizer {
         const container = document.getElementById('network-canvas');
 
         this.globe = Globe()
-            .globeImageUrl('/static/img/globe/earth-night.jpg')
+            .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
             .bumpImageUrl('/static/img/globe/earth-topology.png')
             .backgroundImageUrl('/static/img/globe/night-sky.png')
             .width(container.clientWidth)
@@ -133,9 +128,7 @@ class NetworkOptimizer {
     }
 
     async generateNetwork() {
-        const numNodes = parseInt(document.getElementById('num-nodes').value);
-        const connectionProb = parseFloat(document.getElementById('connection-prob').value);
-        const seed = document.getElementById('random-seed').value;
+        const useFileData = true;
 
         const btn = document.getElementById('btn-generate');
         btn.disabled = true;
@@ -148,9 +141,10 @@ class NetworkOptimizer {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    num_nodes: numNodes,
-                    connection_prob: connectionProb,
-                    seed: seed ? parseInt(seed) : null
+                    num_nodes: 100, // Default or ignored
+                    connection_prob: 0.1, // Default or ignored
+                    seed: null,
+                    use_file_data: true
                 })
             });
 
@@ -160,12 +154,18 @@ class NetworkOptimizer {
                 this.networkData = data;
                 this.visualizeNetwork(data);
                 this.updateStatistics(data);
-                this.showToast('Ağ başarıyla oluşturuldu!', 'success');
+                if (useFileData) {
+                    this.showToast('Dosyadan başarıyla yüklendi! (BSM307...)', 'success');
+                } else {
+                    this.showToast('Ağ başarıyla oluşturuldu!', 'success');
+                }
 
                 // Update max values for source/dest inputs
-                document.getElementById('source-node').max = numNodes - 1;
-                document.getElementById('dest-node').max = numNodes - 1;
-                document.getElementById('dest-node').value = numNodes - 1;
+                document.getElementById('source-node').max = data.num_nodes - 1;
+                document.getElementById('dest-node').max = data.num_nodes - 1;
+                document.getElementById('dest-node').value = data.num_nodes - 1;
+
+
             } else {
                 this.showToast('Hata: ' + data.error, 'error');
             }
@@ -174,9 +174,11 @@ class NetworkOptimizer {
             console.error(error);
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '⚡ Ağ Oluştur';
+            btn.innerHTML = 'Ağ Oluştur';
         }
     }
+
+
 
     visualizeNetwork(data) {
         // Map nodes to ensure they have needed properties
@@ -299,7 +301,7 @@ class NetworkOptimizer {
             console.error(error);
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '🚀 Yolu Optimize Et';
+            btn.innerHTML = 'Yolu Optimize Et';
         }
     }
 
@@ -347,14 +349,13 @@ class NetworkOptimizer {
         // Create lookup for current nodes
         const nodeMap = new Map(currentNodes.map(n => [n.id, n]));
 
-        const currentEdges = this.networkData.edges.map(edge => {
-            const sourceNode = nodeMap.get(edge.source);
-            const targetNode = nodeMap.get(edge.target);
+        // Create edges array with path edges and a subset of background edges
+        const pathEdges = [];
+        const backgroundEdges = [];
 
+        this.networkData.edges.forEach(edge => {
             // Check if edge is part of the path
             let isPathEdge = false;
-            // Optimize path check using a Set of strings "src-dst"
-            // But since path is short (usually < 100 nodes), loop is fine here.
             for (let i = 0; i < path.length - 1; i++) {
                 if ((edge.source === path[i] && edge.target === path[i + 1]) ||
                     (edge.source === path[i + 1] && edge.target === path[i])) {
@@ -363,19 +364,41 @@ class NetworkOptimizer {
                 }
             }
 
-            return {
+            const sourceNode = nodeMap.get(edge.source);
+            const targetNode = nodeMap.get(edge.target);
+
+            if (!sourceNode || !targetNode) return;
+
+            const edgeObj = {
                 startLat: sourceNode.lat,
                 startLng: sourceNode.lng,
                 endLat: targetNode.lat,
                 endLng: targetNode.lng,
                 color: isPathEdge ? ['#00f2fe', '#00f2fe'] : ['rgba(102, 126, 234, 0.1)', 'rgba(102, 126, 234, 0.1)'],
-                stroke: isPathEdge ? 1.5 : Math.sqrt(edge.bandwidth) / 200, // Reduced stroke for non-path
+                stroke: isPathEdge ? 1.5 : Math.sqrt(edge.bandwidth) / 200,
                 dashLength: isPathEdge ? 1 : 0.4,
                 dashGap: isPathEdge ? 0.2 : 0.2,
-                dashAnimateTime: isPathEdge ? 500 : 1500, // Faster animation for path
-                altitude: isPathEdge ? 0.3 : 0 // Arch higher for path
+                dashAnimateTime: isPathEdge ? 500 : 1500,
+                altitude: isPathEdge ? 0.3 : 0
             };
+
+            if (isPathEdge) {
+                pathEdges.push(edgeObj);
+            } else {
+                backgroundEdges.push(edgeObj);
+            }
         });
+
+        // Limit background edges to prevent freezing
+        const MAX_BG_EDGES = 300;
+        let displayBgEdges = backgroundEdges;
+        if (displayBgEdges.length > MAX_BG_EDGES) {
+            displayBgEdges = displayBgEdges
+                .sort(() => 0.5 - Math.random())
+                .slice(0, MAX_BG_EDGES);
+        }
+
+        const currentEdges = [...pathEdges, ...displayBgEdges];
 
         this.globe
             .pointsData(currentNodes)
@@ -458,7 +481,7 @@ class NetworkOptimizer {
             console.error(error);
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '📊 Algoritmaları Karşılaştır';
+            btn.innerHTML = 'Algoritmaları Karşılaştır';
         }
     }
 
@@ -469,15 +492,33 @@ class NetworkOptimizer {
         const tbody = document.getElementById('comparison-results');
         tbody.innerHTML = '';
 
+        // Find max cost for normalization
+        let maxCost = 0;
+        for (const data of Object.values(results)) {
+            if (data.cost > maxCost) maxCost = data.cost;
+        }
+
         for (const [algo, data] of Object.entries(results)) {
             const row = document.createElement('tr');
+
+            // Calculate percentage (lower is better, but bar length usually represents magnitude of cost)
+            // So longer bar = higher cost = worse.
+            const percentage = maxCost > 0 ? (data.cost / maxCost) * 100 : 0;
+
+            // Color coding: Green (shorter/better) -> Red (longer/worse)
+            // Simple approach: Use standard bar color
+
             row.innerHTML = `
                 <td><strong>${algo}</strong></td>
-                <td>${data.cost.toFixed(4)}</td>
+                <td style="width: 50%;">
+                    <div style="display: flex; align-items: center; cursor: pointer;" onclick="alert('Detyalar:\\nMaliyet: ${data.cost.toFixed(4)}\\nGecikme: ${data.metrics.total_delay.toFixed(2)} ms\\nGüvenilirlik: ${(data.metrics.total_reliability * 100).toFixed(2)}%\\nKaynak: ${data.metrics.resource_cost.toFixed(4)}')">
+                        <div style="background: linear-gradient(90deg, var(--accent-cyan), var(--accent-pink)); height: 12px; width: ${percentage}%; border-radius: 6px; position: relative; transition: width 1s;"></div>
+                        <span style="font-size: 0.8rem; margin-left: 10px; color: var(--text-secondary);">${data.cost.toFixed(4)}</span>
+                    </div>
+                </td>
                 <td>${data.metrics.total_delay.toFixed(2)} ms</td>
                 <td>${(data.metrics.total_reliability * 100).toFixed(2)}%</td>
-                <td>${data.execution_time.toFixed(3)}</td>
-                <td>${data.path_length} düğüm</td>
+                <td>${data.execution_time.toFixed(3)}s</td>
             `;
             tbody.appendChild(row);
         }
@@ -523,7 +564,7 @@ class NetworkOptimizer {
             console.error(error);
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '🔬 Testleri Çalıştır';
+            btn.innerHTML = 'Testleri Çalıştır';
         }
     }
 
@@ -535,7 +576,7 @@ class NetworkOptimizer {
         container.innerHTML = `
             <div style="margin-bottom: 1.5rem;">
                 <h3 style="color: var(--accent-cyan); margin-bottom: 1rem;">
-                    📊 ${data.num_tests} Test Sonuçları
+                    ${data.num_tests} Test Sonuçları
                 </h3>
             </div>
             
@@ -566,7 +607,7 @@ class NetworkOptimizer {
             
             <div style="margin-top: 2rem;">
                 <h3 style="color: var(--accent-cyan); margin-bottom: 1rem;">
-                    📈 Sonuç Özeti
+                    Sonuç Özeti
                 </h3>
                 
                 <div class="stats-grid">

@@ -171,18 +171,25 @@ class NetworkGenerator:
             return {
                 'total_delay': float('inf'),
                 'total_reliability': 0.0,
-                'resource_cost': float('inf')
+                'resource_cost': float('inf'),
+                'min_bandwidth': 0.0
             }
         
         total_delay = 0.0
         total_reliability = 1.0
         resource_cost = 0.0
+        min_bandwidth = float('inf')
         
         # Calculate metrics
         for i in range(len(path)):
             # Add node processing delay and reliability
             node = path[i]
-            total_delay += self.graph.nodes[node]['processing_delay']
+            
+            # Per PDF/network_model.py: Source and Dest nodes do NOT contribute to processing delay
+            # Only intermediate nodes add delay.
+            if i > 0 and i < len(path) - 1:
+                total_delay += self.graph.nodes[node]['processing_delay']
+            
             total_reliability *= self.graph.nodes[node]['reliability']
             
             # Add link delay and reliability (except for last node)
@@ -196,7 +203,11 @@ class NetworkGenerator:
                     total_delay += self.graph.edges[edge]['delay']
                     total_reliability *= self.graph.edges[edge]['reliability']
                     # Resource cost is based on bandwidth usage
-                    resource_cost += 1000.0 / self.graph.edges[edge]['bandwidth']
+                    bandwidth = self.graph.edges[edge]['bandwidth']
+                    resource_cost += 1000.0 / bandwidth
+                    
+                    if bandwidth < min_bandwidth:
+                        min_bandwidth = bandwidth
                 else:
                     # Invalid path
                     return {
@@ -208,7 +219,8 @@ class NetworkGenerator:
         return {
             'total_delay': total_delay,
             'total_reliability': total_reliability,
-            'resource_cost': resource_cost
+            'resource_cost': resource_cost,
+            'min_bandwidth': min_bandwidth
         }
     
     def calculate_total_cost(self, path: list, weights: Dict[str, float]) -> float:
@@ -222,10 +234,17 @@ class NetworkGenerator:
         Returns:
             Total cost value
         """
+        import math
+        
         metrics = self.get_path_metrics(path)
         
-        # Normalize reliability (convert to cost: 1 - reliability)
-        reliability_cost = 1.0 - metrics['total_reliability']
+        # Calculate Reliability Cost using -log method (from network_model.py)
+        # reliability_cost = -log(total_reliability)
+        # Avoid log(0)
+        if metrics['total_reliability'] > 0:
+            reliability_cost = -math.log(metrics['total_reliability'])
+        else:
+            reliability_cost = float('inf')
         
         total_cost = (
             weights['delay'] * metrics['total_delay'] +

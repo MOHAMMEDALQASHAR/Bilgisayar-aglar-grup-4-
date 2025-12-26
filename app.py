@@ -22,6 +22,7 @@ CORS(app)
 # Global network instance
 network_gen = None
 graph = None
+demand_data = None
 
 
 @app.route('/')
@@ -41,17 +42,30 @@ def generate_network():
         connection_prob = data.get('connection_prob', 0.1)
         seed = data.get('seed', None)
         
+        use_file_data = data.get('use_file_data', False)
+        
         # Generate network
         network_gen = NetworkGenerator(num_nodes, connection_prob, seed)
         
-        try:
-            # Try to load from CSV files first
-            nodes_df, edges_df, _ = load_network_data()
-            print("Loading network from CSV files...")
-            graph = network_gen.load_from_data(nodes_df, edges_df)
-        except Exception as load_err:
-            print(f"Could not load CSV files, falling back to random generation: {load_err}")
+        if use_file_data:
+            try:
+                # Try to load from CSV files
+                nodes_df, edges_df, demand_df = load_network_data()
+                if demand_df is not None:
+                    global demand_data
+                    demand_data = demand_df.to_dict('records')
+                    print(f"Loading network from CSV files... Loaded {len(demand_data)} demands.")
+                
+                graph = network_gen.load_from_data(nodes_df, edges_df)
+            except Exception as load_err:
+                return jsonify({
+                    'success': False,
+                    'error': f"Failed to load CSV files: {str(load_err)}"
+                }), 400
+        else:
+            # Random generation
             graph = network_gen.generate_connected_network()
+            demand_data = [] # Reset if random
         
         # Prepare network data for visualization
         nodes_data = []
@@ -228,7 +242,8 @@ def compare_algorithms():
                 'metrics': {
                     'total_delay': float(metrics['total_delay']),
                     'total_reliability': float(metrics['total_reliability']),
-                    'resource_cost': float(metrics['resource_cost'])
+                    'resource_cost': float(metrics['resource_cost']),
+                    'min_bandwidth': float(metrics['min_bandwidth'])
                 },
                 'execution_time': float(execution_time),
                 'path_length': len(best_path)
@@ -264,20 +279,35 @@ def run_tests():
         num_tests = data.get('num_tests', 5)  # Reduced default for performance
         
         # Generate random test cases
-        import random
-        nodes = list(graph.nodes())
+        use_demand_file = data.get('use_demand_file', False)
+        
+        # Generate random test cases or use file
         test_cases = []
         
-        for _ in range(num_tests):
-            source = random.choice(nodes)
-            destination = random.choice([n for n in nodes if n != source])
-            
-            # Verify connectivity
-            if network_gen.verify_connectivity(source, destination):
+        if use_demand_file and demand_data:
+            print("Using Demand Data from CSV file...")
+            for row in demand_data:
                 test_cases.append({
-                    'source': source,
-                    'destination': destination
+                    'source': int(row['src']),
+                    'destination': int(row['dst']),
+                    'demand_mbps': float(row['demand_mbps'])
                 })
+        else:
+            # Random generation
+            import random
+            nodes = list(graph.nodes())
+            
+            for _ in range(num_tests):
+                source = random.choice(nodes)
+                destination = random.choice([n for n in nodes if n != source])
+                
+                # Verify connectivity
+                if network_gen.verify_connectivity(source, destination):
+                    test_cases.append({
+                        'source': source,
+                        'destination': destination,
+                        'demand_mbps': 0 # No specific demand
+                    })
         
         # Run all algorithms on all test cases
         results = {
@@ -312,6 +342,26 @@ def run_tests():
                 best_path, best_cost, history = algo.optimize()
                 execution_time = time.time() - start_time
                 
+                # Calculate path capacity
+                path_capacity = float('inf')
+                if best_path and len(best_path) > 1:
+                     for i in range(len(best_path) - 1):
+                        u, v = best_path[i], best_path[i+1]
+                        if graph.has_edge(u, v):
+                            bw = graph[u][v].get('bant_genisligi', 0)
+                            if bw < path_capacity:
+                                path_capacity = bw
+                
+                success_status = "Success"
+                reason = ""
+                
+                if not best_path:
+                    success_status = "Failed"
+                    reason = "No path found"
+                elif test_case.get('demand_mbps', 0) > 0 and path_capacity < test_case['demand_mbps']:
+                    success_status = "Failed"
+                    reason = f"Insufficient Bandwidth ({path_capacity} < {test_case['demand_mbps']})"
+                
                 metrics = network_gen.get_path_metrics(best_path)
                 
                 results[algo_name].append({
@@ -323,7 +373,12 @@ def run_tests():
                     'path_length': len(best_path),
                     'total_delay': float(metrics['total_delay']),
                     'total_reliability': float(metrics['total_reliability']),
-                    'resource_cost': float(metrics['resource_cost'])
+                    'total_reliability': float(metrics['total_reliability']),
+                    'resource_cost': float(metrics['resource_cost']),
+                    'status': success_status,
+                    'reason': reason,
+                    'demand_mbps': test_case.get('demand_mbps', 0),
+                    'path_capacity': path_capacity
                 })
         
         # Calculate statistics

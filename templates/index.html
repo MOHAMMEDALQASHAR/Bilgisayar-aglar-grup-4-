@@ -15,8 +15,8 @@
     <header>
         <div class="header-content">
             <div>
-                <h1>🌐 Ağ Yolu Optimizasyonu</h1>
-                <p class="header-subtitle">Multi-Objective Network Path Optimization using AI Algorithms</p>
+                <h1>🌐 Bilgisayar ağları grup ( 4 )</h1>
+
             </div>
         </div>
     </header>
@@ -49,113 +49,43 @@
                 <!-- Network Generation Card -->
                 <div class="card fade-in">
                     <div class="card-header">
-                        <div class="card-icon">🔧</div>
+
                         <h2 class="card-title">Ağ Oluşturma</h2>
                     </div>
 
-                    <div class="form-group">
-                        <label for="num-nodes">Düğüm Sayısı (Nodes)</label>
-                        <input type="number" id="num-nodes" value="100" min="10" max="300">
-                    </div>
+
 
                     <div class="form-group">
-                        <label for="connection-prob">Bağlantı Olasılığı (p)</label>
-                        <input type="range" id="connection-prob" min="0.05" max="0.5" step="0.05" value="0.1">
-                        <span class="range-value" id="prob-value">0.4</span>
+                        <label>Veri Kaynağı (Data Source)</label>
+                        <div
+                            style="padding: 0.8rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; color: var(--text-primary);">
+                            Dosyadan Yükle (Load from CSV)
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="random-seed">Random Seed (İsteğe Bağlı)</label>
-                        <input type="number" id="random-seed" placeholder="Rastgelelik için boş bırakın">
+
+
+                    <div id="file-input-msg"
+                        style="padding: 1rem; background: rgba(0, 242, 254, 0.1); border-radius: 8px; margin-bottom: 1rem; border: 1px dashed var(--accent-cyan);">
+                        <p style="font-size: 0.9rem; color: var(--accent-cyan); margin-bottom: 0.5rem;">📁 Proje
+                            Dosyaları Kullanılacak:</p>
+                        <ul style="font-size: 0.8rem; color: var(--text-secondary); list-style-type: none;">
+                            <li>• BSM307...NodeData.csv</li>
+                            <li>• BSM307...EdgeData.csv</li>
+                            <li>• BSM307...DemandData.csv</li>
+                        </ul>
                     </div>
 
                     <button class="btn btn-primary" id="btn-generate">
-                        ⚡ Ağ Oluştur
+                        Ağ Oluştur
                     </button>
                 </div>
 
-                <!-- Path Optimization Card -->
-                <div class="card fade-in">
-                    <div class="card-header">
-                        <div class="card-icon">🎯</div>
-                        <h2 class="card-title">Yol Optimizasyonu</h2>
-                    </div>
 
-                    <div class="form-group">
-                        <label for="source-node">Kaynak Düğüm (Source)</label>
-                        <input type="number" id="source-node" value="0" min="0">
-                    </div>
 
-                    <div class="form-group">
-                        <label for="dest-node">Hedef Düğüm (Destination)</label>
-                        <input type="number" id="dest-node" value="249" min="0">
-                    </div>
 
-                    <div class="form-group">
-                        <label for="algorithm">Algoritma</label>
-                        <select id="algorithm">
-                            <option value="GA">Genetic Algorithm (GA)</option>
-                            <option value="ACO">Ant Colony Optimization (ACO)</option>
-                            <option value="PSO">Particle Swarm Optimization (PSO)</option>
-                            <option value="SA">Simulated Annealing (SA)</option>
-                            <option value="TS">Tabu Search (TS)</option>
-                        </select>
-                    </div>
 
-                    <hr style="border: none; border-top: 1px solid var(--card-border); margin: 1.5rem 0;">
 
-                    <h3 style="margin-bottom: 1rem; color: var(--text-secondary); font-size: 1rem;">Ağırlıklar (Weights)
-                    </h3>
-
-                    <div class="form-group">
-                        <label for="weight-delay">Gecikme Ağırlığı (Delay)</label>
-                        <input type="range" id="weight-delay" min="0" max="1" step="0.01" value="0.33">
-                        <span class="range-value" id="delay-value">0.33</span>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="weight-reliability">Güvenilirlik Ağırlığı (Reliability)</label>
-                        <input type="range" id="weight-reliability" min="0" max="1" step="0.01" value="0.33">
-                        <span class="range-value" id="reliability-value">0.33</span>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="weight-resource">Kaynak Tüketimi Ağırlığı (Resource)</label>
-                        <input type="range" id="weight-resource" min="0" max="1" step="0.01" value="0.34">
-                        <span class="range-value" id="resource-value">0.34</span>
-                    </div>
-
-                    <div
-                        style="text-align: center; margin: 1rem 0; padding: 0.8rem; background: rgba(0, 242, 254, 0.1); border-radius: 8px;">
-                        <span style="color: var(--accent-cyan); font-weight: 600;">Toplam: <span
-                                id="weights-sum">1.00</span></span>
-                    </div>
-
-                    <button class="btn btn-success" id="btn-optimize">
-                        🚀 Yolu Optimize Et
-                    </button>
-
-                    <button class="btn btn-secondary" id="btn-compare">
-                        📊 Algoritmaları Karşılaştır
-                    </button>
-                </div>
-
-                <!-- Testing Card -->
-                <div class="card fade-in">
-                    <div class="card-header">
-                        <div class="card-icon">🧪</div>
-                        <h2 class="card-title">Kapsamlı Testler</h2>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="num-tests">Test Sayısı</label>
-                        <input type="number" id="num-tests" value="20" min="5" max="100">
-                    </div>
-
-                    <button class="btn btn-primary" id="btn-run-tests">
-                        🔬 Testleri Çalıştır
-                    </button>
-                </div>
             </div>
 
             <!-- Visualization Panel -->
@@ -163,7 +93,7 @@
                 <!-- Network Visualization Card -->
                 <div class="card fade-in">
                     <div class="card-header">
-                        <div class="card-icon">📊</div>
+
                         <h2 class="card-title">Ağ Görselleştirme</h2>
                     </div>
 
@@ -207,12 +137,14 @@
                             <span class="metric-value" id="result-time">-</span>
                         </div>
                     </div>
+
+
                 </div>
 
                 <!-- Comparison Results Card -->
                 <div class="card fade-in" id="comparison-card" style="display: none;">
                     <div class="card-header">
-                        <div class="card-icon">📈</div>
+
                         <h2 class="card-title">Algoritma Karşılaştırması</h2>
                     </div>
 
@@ -235,7 +167,7 @@
                 <!-- Testing Results Card -->
                 <div class="card fade-in" id="testing-card" style="display: none;">
                     <div class="card-header">
-                        <div class="card-icon">📉</div>
+
                         <h2 class="card-title">İstatistiksel Test Sonuçları</h2>
                     </div>
 
@@ -243,17 +175,145 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Toast Notification -->
-    <div class="toast" id="toast">
-        <span id="toast-message"></span>
-    </div>
+        <!-- Path Optimization Section (moved to bottom) -->
+        <div class="card fade-in" style="margin-top: 1.5rem;">
+            <div class="card-header">
 
-    <!-- Scripts -->
-    <script src="/static/lib/d3.v7.min.js"></script>
-    <script src="/static/lib/globe.gl.min.js"></script>
-    <script src="/static/js/app.js"></script>
+                <h2 class="card-title">Yol Optimizasyonu</h2>
+            </div>
+
+
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; align-items: start;">
+                <!-- Column 1: Source & Dest -->
+                <div>
+                    <div class="form-group" style="margin-bottom: 0.5rem;">
+                        <label for="source-node">S (Kaynak)</label>
+                        <input type="number" id="source-node" value="0" min="0">
+                    </div>
+                </div>
+                <div>
+                    <div class="form-group" style="margin-bottom: 0.5rem;">
+                        <label for="dest-node">D (Hedef)</label>
+                        <input type="number" id="dest-node" value="249" min="0">
+                    </div>
+                </div>
+
+                <!-- Column 2: Algorithm -->
+                <div>
+                    <div class="form-group" style="margin-bottom: 0.5rem;">
+                        <label for="algorithm">Algoritma</label>
+                        <select id="algorithm">
+                            <option value="GA">Genetik Algoritma (GA)</option>
+                            <option value="ACO">Karınca Kolonisi Optimizasyonu (ACO)</option>
+                            <option value="PSO">Parçacık Sürü Optimizasyonu (PSO)</option>
+                            <option value="SA">Benzetilmiş Tavlama (SA)</option>
+                            <option value="TS">Tabu Arama (TS)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <hr style="border: none; border-top: 1px solid var(--card-border); margin: 0.8rem 0;">
+
+            <!-- Weights & Buttons Row -->
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: end;">
+
+                <!-- Weights -->
+                <div>
+                    <div style="margin-bottom: 0.5rem;">
+                        <span style="font-size: 0.9rem; color: var(--text-secondary); font-weight: 600;">Ağırlıklar
+                            (Weights)</span>
+                        <span style="float: right; font-size: 0.8rem; color: var(--accent-cyan);">Toplam: <span
+                                id="weights-sum">1.00</span></span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="weight-delay" style="font-size: 0.75rem;">Gecikme <span id="delay-value"
+                                    class="range-value"
+                                    style="float: right; font-size: 0.75rem; padding: 0 4px;">0.33</span></label>
+                            <input type="range" id="weight-delay" min="0" max="1" step="0.01" value="0.33"
+                                style="height: 4px;">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="weight-reliability" style="font-size: 0.75rem;">Güvenilirlik <span
+                                    id="reliability-value" class="range-value"
+                                    style="float: right; font-size: 0.75rem; padding: 0 4px;">0.33</span></label>
+                            <input type="range" id="weight-reliability" min="0" max="1" step="0.01" value="0.33"
+                                style="height: 4px;">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="weight-resource" style="font-size: 0.75rem;">Kaynak <span id="resource-value"
+                                    class="range-value"
+                                    style="float: right; font-size: 0.75rem; padding: 0 4px;">0.34</span></label>
+                            <input type="range" id="weight-resource" min="0" max="1" step="0.01" value="0.34"
+                                style="height: 4px;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+                    <button class="btn btn-success" id="btn-optimize" style="margin-top: 0; padding: 0.8rem;">
+                        Optimize
+                    </button>
+
+                    <button class="btn btn-secondary" id="btn-compare" style="margin-top: 0; padding: 0.8rem;">
+                        Karşılaştır
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Testing Card (moved to bottom) -->
+        <div class="card fade-in" style="margin-top: 1.5rem;">
+            <div class="card-header">
+
+                <h2 class="card-title">Kapsamlı Testler</h2>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 200px; gap: 2rem; align-items: end;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="num-tests">Test Sayısı</label>
+                    <input type="number" id="num-tests" value="20" min="5" max="100">
+                </div>
+
+                <button class="btn btn-primary" id="btn-run-tests" style="margin-top: 0; padding: 0.8rem;">
+                    Testleri Çalıştır
+                </button>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div class="toast" id="toast">
+            <span id="toast-message"></span>
+        </div>
+
+        <!-- Scripts -->
+        <script src="/static/lib/d3.v7.min.js"></script>
+        <script src="/static/lib/globe.gl.min.js"></script>
+        <script src="/static/js/app.js"></script>
+        <script>
+            function toggleGenerationInputs() {
+                const source = document.getElementById('data-source').value;
+                const randomInputs = document.getElementById('random-generation-inputs');
+                const fileMsg = document.getElementById('file-input-msg');
+
+                if (source === 'file') {
+                    randomInputs.style.display = 'none';
+                    fileMsg.style.display = 'block';
+                } else {
+                    randomInputs.style.display = 'block';
+                    fileMsg.style.display = 'none';
+                }
+            }
+        </script>
 </body>
 
 </html>
